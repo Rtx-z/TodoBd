@@ -7,3 +7,20 @@ To-Do App
 Отмечать сделанные
 Удалять ненужные
 Выходить из аккаунта
+
+Из чего сделано
+Сервер:
+Node.js + Fastify
+Supabase как база данных
+Пароли хешируются, токены через JWT
+
+Клиент:
+HTML, CSS, чистый JS
+Всё хранится в localStorage
+
+Запуск:
+cd backend
+npm install
+npm start
+
+Будет висеть на localhost:3000
