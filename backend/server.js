@@ -3,13 +3,20 @@ require('dotenv').config();
 const Fastify = require('fastify');
 const cors = require('@fastify/cors');
 const jwt = require('@fastify/jwt');
+const staticPlugin = require('@fastify/static');
 const { createClient } = require('@supabase/supabase-js');
 const bcrypt = require('bcrypt');
+const path = require('path');
 
 const fastify = Fastify({ logger: true });
 
 fastify.register(cors, { origin: true, credentials: true });
 fastify.register(jwt, { secret: process.env.JWT_SECRET });
+
+fastify.register(staticPlugin, {
+  root: path.join(__dirname, '..', 'front'),
+  prefix: '/'
+});
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -59,6 +66,7 @@ const taskSchema = {
     }
   }
 };
+
 fastify.post('/register', { schema: registerSchema }, async (request, reply) => {
   const { user_name, user_password } = request.body;
 
@@ -69,6 +77,7 @@ fastify.post('/register', { schema: registerSchema }, async (request, reply) => 
     .maybeSingle();
 
   if (findError) {
+    console.log('FIND ERROR:', findError);
     return reply.status(500).send({ error: 'Ошибка базы данных' });
   }
   if (existingUser) {
@@ -83,6 +92,7 @@ fastify.post('/register', { schema: registerSchema }, async (request, reply) => 
     .single();
 
   if (insertError) {
+    console.log('INSERT ERROR:', insertError);
     return reply.status(500).send({ error: 'Не удалось создать пользователя' });
   }
 
@@ -159,9 +169,11 @@ fastify.register(async (protectedRoutes) => {
       .eq('id', id)
       .eq('user_id', userId)
       .single();
+
     if (findError || !existingTask) {
       return reply.status(404).send({ error: 'Задача не найдена или доступ запрещён' });
     }
+
     const updates = {};
     if (title !== undefined) updates.title = title;
     if (completed !== undefined) updates.completed = completed;
@@ -206,6 +218,10 @@ fastify.register(async (protectedRoutes) => {
   });
 });
 
+fastify.get('/', (request, reply) => {
+  reply.sendFile('index.html');
+});
+
 const start = async () => {
   try {
     const port = process.env.PORT || 3000;
@@ -216,6 +232,5 @@ const start = async () => {
     process.exit(1);
   }
 };
-start();    
-//meeponegeroi@gmail.com
-//meepo123
+
+start();
